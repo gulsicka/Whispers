@@ -9,6 +9,11 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.widget.Toast;
 
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
+
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,7 +62,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                     if (wifiP2pGroup != null) {
                         String ssid = wifiP2pGroup.getNetworkName();
                         String password = wifiP2pGroup.getPassphrase();
-                        Toast.makeText(context, "group available", Toast.LENGTH_SHORT);
+                        Toast.makeText(context.getApplicationContext(), "group available", Toast.LENGTH_SHORT);
                         System.out.println("ssid: ");
                         System.out.println(ssid);
                         System.out.println("password: ");
@@ -77,19 +82,29 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                     if (wifiP2pGroup != null) {
                         String ssid = wifiP2pGroup.getNetworkName();
                         String password = wifiP2pGroup.getPassphrase();
-                        Toast.makeText(context, "group available", Toast.LENGTH_SHORT);
+                        Toast.makeText(context, "group available", Toast.LENGTH_SHORT).show();
                         System.out.println("ssid: ");
                         System.out.println(ssid);
                         System.out.println("password: ");
                         System.out.println(password);
                         Map record = new HashMap();
-                        record.put("wifi_ssid",ssid);
-                        record.put("wifi_password",password);
+                        record.put("wifi_ssid", ssid);
+                        record.put("wifi_password", password);
                         WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", record);
                         mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
                             @Override
                             public void onSuccess() {
                                 System.out.println("service added successfully");
+                                String ipAddress = "0.0.0.0";
+                                InetSocketAddress inetSockAddress = new InetSocketAddress(ipAddress, 38301);
+
+                                WebsocketServer webSocketServer = new WebsocketServer(inetSockAddress);
+                                webSocketServer.start();
+                                Intent i = new Intent();
+                                i.setClassName("org.macmads.whispers", "org.macmads.whispers.ChatActivity");
+                                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                i.putExtra("server_ip","localhost");
+                                context.startActivity(i);
                             }
 
                             @Override

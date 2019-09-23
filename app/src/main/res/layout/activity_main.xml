@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="91dp"
         android:onClick="btnDiscoverPeersOnClick"
-        android:text="Discover Peers"
+        android:text="Discover Groups"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

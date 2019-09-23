@@ -4,13 +4,17 @@ package org.macmads.whispers;
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.DnsSdTxtRecordListener;
@@ -21,12 +25,14 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Build;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.macmads.whispers.R;
@@ -45,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver;
     IntentFilter intentFilter;
     final HashMap<String, String> dnsRecords = new HashMap<String, String>();
-
+    public WifiManager wifiManager;
 
     List devicesList = new ArrayList<WifiP2pDevice>();
     ArrayAdapter deviceListAdapter;
@@ -68,7 +74,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    private String formatIP(int ip) {
+        return String.format(
+                "%d.%d.%d.%d",
+                (ip & 0xff),
+                (ip >> 8 & 0xff),
+                (ip >> 16 & 0xff),
+                (ip >> 24 & 0xff)
+        );
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,9 +128,28 @@ public class MainActivity extends AppCompatActivity {
             public void onDnsSdTxtRecordAvailable(
                     String fullDomain, Map record, WifiP2pDevice device) {
 //                Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
-                Toast.makeText(MainActivity.this, "DnsSdTxtRecord available -" + record.toString(),
-                        Toast.LENGTH_LONG).show();
+//                Toast.makeText(MainActivity.this, "DnsSdTxtRecord available -" + record.toString(),
+//                        Toast.LENGTH_LONG).show();
                 dnsRecords.put(device.deviceAddress, "wifi groups: "+((String) record.get("wifi_ssid")));
+                WifiConfiguration wifiConfig = new WifiConfiguration();
+                wifiConfig.SSID = String.format("\"%s\"", record.get("wifi_ssid"));
+                wifiConfig.preSharedKey = String.format("\"%s\"", record.get("wifi_password"));
+
+                wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
+//remember id
+                int netId = wifiManager.addNetwork(wifiConfig);
+                wifiManager.disconnect();
+                wifiManager.enableNetwork(netId, true);
+                wifiManager.reconnect();
+                while (formatIP(wifiManager.getConnectionInfo().getIpAddress()).equals("0.0.0.0")){
+                }
+                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
+                        Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(MainActivity.this,ChatActivity.class);
+                intent.putExtra("server_ip",formatIP(wifiManager.getDhcpInfo().gateway));
+                MainActivity.this.startActivity(intent);
+
+
                 System.out.println("dns records recieved");
 
             }
@@ -126,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
         DnsSdServiceResponseListener servListener = new DnsSdServiceResponseListener() {
             @Override
             public void onDnsSdServiceAvailable(String instanceName, String registrationType,
-                                                WifiP2pDevice resourceType) {
+                                                final WifiP2pDevice resourceType) {
 
                 System.out.println("dns service available");
                 resourceType.deviceName = dnsRecords
@@ -134,16 +167,19 @@ public class MainActivity extends AppCompatActivity {
                         .get(resourceType.deviceAddress) : resourceType.deviceName;
                 // Add to the custom adapter defined specifically for showing
                 // wifi devices.
-//                WiFiDirectServicesList fragment = (WiFiDirectServicesList) getFragmentManager()
-//                        .findFragmentById(R.id.frag_peerlist);
-//                WiFiDevicesAdapter adapter = ((WiFiDevicesAdapter) fragment
-//                        .getListAdapter());
-//
-//                adapter.add(resourceType);
-//                adapter.notifyDataSetChanged();
-//                deviceListAdapter.clear();
-                deviceListAdapter.add(resourceType);
-                deviceListAdapter.notifyDataSetChanged();
+
+
+
+
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        deviceListAdapter.add(resourceType);
+                        deviceListAdapter.notifyDataSetChanged();
+                    }
+                });
+
 
 
             }
@@ -167,6 +203,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+
+
         manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
 
             @Override
@@ -178,36 +216,40 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(int code) {
                 // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
+                System.out.println("service discovery failed");
 
             }
         });
 
-
         devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                System.out.println(adapterView.getAdapter().getItem(i));
+                System.out.println(formatIP(wifiManager.getConnectionInfo().getIpAddress()));
 
-                WifiP2pDevice device = (WifiP2pDevice) adapterView.getAdapter().getItem(i);
-                WifiP2pConfig config = new WifiP2pConfig();
-                config.deviceAddress = device.deviceAddress;
-                config.wps.setup = WpsInfo.PBC;
-
-                manager.connect(channel, config, new WifiP2pManager.ActionListener() {
-
-                    @Override
-                    public void onSuccess() {
-                        // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
-                        Toast.makeText(MainActivity.this, "Connection Successful.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onFailure(int reason) {
-                        Toast.makeText(MainActivity.this, "Connect failed. Retry.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
+                        Toast.LENGTH_LONG).show();
+//                System.out.println(adapterView.getAdapter().getItem(i));
+//
+//                WifiP2pDevice device = (WifiP2pDevice) adapterView.getAdapter().getItem(i);
+//                WifiP2pConfig config = new WifiP2pConfig();
+//                config.deviceAddress = device.deviceAddress;
+//                config.wps.setup = WpsInfo.PBC;
+//
+//                manager.connect(channel, config, new WifiP2pManager.ActionListener() {
+//
+//                    @Override
+//                    public void onSuccess() {
+//                        // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
+//                        Toast.makeText(MainActivity.this, "Connection Successful.",
+//                                Toast.LENGTH_SHORT).show();
+//                    }
+//
+//                    @Override
+//                    public void onFailure(int reason) {
+//                        Toast.makeText(MainActivity.this, "Connect failed. Retry.",
+//                                Toast.LENGTH_SHORT).show();
+//                    }
+//                });
 
             }
         });
@@ -215,14 +257,22 @@ public class MainActivity extends AppCompatActivity {
 
     WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
         @Override
-        public void onPeersAvailable(WifiP2pDeviceList peers) {
+        public void onPeersAvailable(final WifiP2pDeviceList peers) {
             deviceListAdapter.clear();
             System.out.println("peers: ");
             System.out.println(peers.getDeviceList());
 //            for (WifiP2pDevice peer:peers.getDeviceList()){
 //                deviceListAdapter.add(peer.deviceName);
 //            }
-            deviceListAdapter.addAll(peers.getDeviceList());
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    deviceListAdapter.addAll(peers.getDeviceList());
+                    deviceListAdapter.notifyDataSetChanged();
+                }
+            });
+
         }
     };
 
@@ -243,32 +293,58 @@ public class MainActivity extends AppCompatActivity {
     public void btnDiscoverPeersOnClick(View view) {
 //        manager.requestDiscoveryState(channel,discoveryStateListener);
         deviceListAdapter.clear();
-        System.out.println("button pressed");
-        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+//        System.out.println("button pressed");
+//        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+//            @Override
+//            public void onSuccess() {
+//                Toast.makeText(MainActivity.this, "peers discovery started successfully",
+//                        Toast.LENGTH_SHORT).show();
+//                System.out.println("peers discovery started successfully");
+//            }
+//
+//            @Override
+//            public void onFailure(int reasonCode) {
+//                Toast.makeText(MainActivity.this, "peers discovery failed",
+//                        Toast.LENGTH_SHORT).show();
+//                System.out.println("peers discovery failed");
+//            }
+//        });
+        manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
+
             @Override
             public void onSuccess() {
-                Toast.makeText(MainActivity.this, "peers discovery started successfully",
-                        Toast.LENGTH_SHORT).show();
-                System.out.println("peers discovery started successfully");
+                // Success!
+                System.out.println("service discovery started successfully");
             }
 
             @Override
-            public void onFailure(int reasonCode) {
-                Toast.makeText(MainActivity.this, "peers discovery failed",
-                        Toast.LENGTH_SHORT).show();
-                System.out.println("peers discovery failed");
+            public void onFailure(int code) {
+                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
+                System.out.println("service discovery failed");
+
             }
         });
     }
 
     public void btnHandler(View view) {
+        manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+
+            }
+
+            @Override
+            public void onFailure(int i) {
+
+            }
+        });
         manager.createGroup(channel, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
                 // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
-                Toast.makeText(MainActivity.this, "Group Creation Successful.",
-                        Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "Group Creation Successful.",
+//                        Toast.LENGTH_SHORT).show();
             }
 
             @Override
