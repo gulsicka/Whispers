@@ -34,6 +34,9 @@ import org.macmads.whispers.R;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import java.util.Map;
 
@@ -47,11 +50,9 @@ public class MainActivity extends AppCompatActivity {
     final HashMap<String, String> dnsRecords = new HashMap<String, String>();
 
 
-    List devicesList = new ArrayList<WifiP2pDevice>();
-    ArrayAdapter deviceListAdapter;
-
-    ListView devicesListView;
-
+    RecyclerView recyclerView;
+    RvAdapter DL_Adapter;
+    List<RowModel> list;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -75,9 +76,14 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        devicesListView = (ListView) findViewById(R.id.wifiDevicesList);
-        deviceListAdapter = new ArrayAdapter<String>(this, R.layout.activity_devices_list_item, devicesList);
-        devicesListView.setAdapter(deviceListAdapter);
+        recyclerView = findViewById(R.id.wifiDevicesList);
+        list=new ArrayList<>();
+        DL_Adapter = new RvAdapter(list);
+        RecyclerView.LayoutManager mLayoutManager = new
+                LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(DL_Adapter);
 
 
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
@@ -142,8 +148,12 @@ public class MainActivity extends AppCompatActivity {
 //                adapter.add(resourceType);
 //                adapter.notifyDataSetChanged();
 //                deviceListAdapter.clear();
-                deviceListAdapter.add(resourceType);
-                deviceListAdapter.notifyDataSetChanged();
+                RowModel row = new RowModel(resourceType.deviceName);
+                if(list.contains(row) != true) {
+                    list.add(row);
+                    recyclerView.getAdapter().notifyItemInserted(list.size());
+                    recyclerView.smoothScrollToPosition(list.size());
+                }
 
 
             }
@@ -183,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+       /* devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 System.out.println(adapterView.getAdapter().getItem(i));
@@ -210,19 +220,23 @@ public class MainActivity extends AppCompatActivity {
                 });
 
             }
-        });
+        });*/
     }
 
     WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
         @Override
         public void onPeersAvailable(WifiP2pDeviceList peers) {
-            deviceListAdapter.clear();
+            //deviceListAdapter.clear();
             System.out.println("peers: ");
             System.out.println(peers.getDeviceList());
-//            for (WifiP2pDevice peer:peers.getDeviceList()){
-//                deviceListAdapter.add(peer.deviceName);
-//            }
-            deviceListAdapter.addAll(peers.getDeviceList());
+           for (WifiP2pDevice peer:peers.getDeviceList()){
+               RowModel row = new RowModel(peer.deviceName);
+               if(list.contains(row) != true) {
+                   list.add(row);
+                   recyclerView.getAdapter().notifyItemInserted(list.size());
+                   recyclerView.smoothScrollToPosition(list.size());
+               }
+            }
         }
     };
 
@@ -242,7 +256,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void btnDiscoverPeersOnClick(View view) {
 //        manager.requestDiscoveryState(channel,discoveryStateListener);
-        deviceListAdapter.clear();
         System.out.println("button pressed");
         manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
             @Override
