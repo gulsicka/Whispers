@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 //                adapter.add(resourceType);
 //                adapter.notifyDataSetChanged();
 //                deviceListAdapter.clear();
-                RowModel row = new RowModel(resourceType.deviceName);
+                RowModel row = new RowModel(resourceType.deviceName, resourceType);
                 if(list.contains(row) != true) {
                     list.add(row);
                     recyclerView.getAdapter().notifyItemInserted(list.size());
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("peers: ");
             System.out.println(peers.getDeviceList());
            for (WifiP2pDevice peer:peers.getDeviceList()){
-               RowModel row = new RowModel(peer.deviceName);
+               RowModel row = new RowModel(peer.deviceName, peer);
                if(list.contains(row) != true) {
                    list.add(row);
                    recyclerView.getAdapter().notifyItemInserted(list.size());
