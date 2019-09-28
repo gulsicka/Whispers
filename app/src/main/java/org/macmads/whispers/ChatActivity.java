@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import org.java_websocket.client.WebSocketClient;
@@ -18,11 +20,13 @@ public class ChatActivity extends AppCompatActivity {
     public ListView messagesView;
     public WebSocketClient client;
     public MessageAdapter messageAdapter;
+    public EditText msg_to_send;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
+        msg_to_send = findViewById(R.id.editText);
+        msg_to_send.setText("");
         Intent intent = getIntent();
 
         messagesView = (ListView) findViewById(R.id.messages_view);
@@ -50,8 +54,8 @@ public class ChatActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
 
                     @Override
-                    public void run() {
-                        recieveMessage(m);
+                    public void run() {//server ka msg yahan recieve hota hay, client doesnt know k yea kahan say aya hay but server does
+                        recieveMessage(m);//addss msg to listview
                         messagesView.refreshDrawableState();
                     }
                 });
@@ -62,11 +66,12 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
-
+//make it go back to main activity
             }
 
             @Override
             public void onError(Exception ex) {
+//make it go back to main activity
 
             }
         };
@@ -74,8 +79,10 @@ public class ChatActivity extends AppCompatActivity {
 
     }
     public void sendMessage(View view){
-        client.send("button pressed");
-        messageAdapter.add(new Message("message",new MemberData("abdullah","red"),true));
+
+        client.send(msg_to_send.getText().toString());
+        messageAdapter.add(new Message(msg_to_send.getText().toString(),new MemberData("abdullah","red"),true));
+        msg_to_send.setText("");
         messageAdapter.notifyDataSetChanged();
 
     }

@@ -33,7 +33,7 @@ public class WebsocketServer extends WebSocketServer {
     @Override
     public void onMessage(WebSocket arg0, String arg1) {
         // TODO Auto-generated method stub
-        this.broadcast(arg1);
+        this.broadcast(arg1);//jo msg aata hay wo broadcast krta hay
         System.out.println("message recieved");
 
     }

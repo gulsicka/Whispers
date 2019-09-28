@@ -46,10 +46,10 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 1001;
 
-    WifiP2pManager manager;
-    Channel channel;
-    BroadcastReceiver receiver;
-    IntentFilter intentFilter;
+    WifiP2pManager manager;// call wifi direct's function
+    Channel channel;// when wifip2p is initilized it returns a channel
+    BroadcastReceiver receiver;// recieves acceptance of permissions granted by system e.g. grant location
+    IntentFilter intentFilter;//
     final HashMap<String, String> dnsRecords = new HashMap<String, String>();
     public WifiManager wifiManager;
 
@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     ListView devicesListView;
 
 
+    //this reacts to the result from request of permission
+    //handle the case when permission isnt granted in if
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
@@ -74,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String formatIP(int ip) {
+    private String formatIP(int ip) {//formats hotspots's ip
         return String.format(
                 "%d.%d.%d.%d",
                 (ip & 0xff),
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        devicesListView = (ListView) findViewById(R.id.wifiDevicesList);
+        devicesListView = (ListView) findViewById(R.id.wifiDevicesList);//
         deviceListAdapter = new ArrayAdapter<String>(this, R.layout.activity_devices_list_item, devicesList);
         devicesListView.setAdapter(deviceListAdapter);
 
@@ -98,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         channel = manager.initialize(this, getMainLooper(), null);
         receiver = new WiFiDirectBroadcastReceiver(manager, channel, this);
 
-        intentFilter = new IntentFilter();
+        intentFilter = new IntentFilter();// tells broadcast reciever to recieve these actions
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -111,13 +113,13 @@ public class MainActivity extends AppCompatActivity {
             // After this point you wait for callback in
             // onRequestPermissionsResult(int, String[], int[]) overridden method
         }
-        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);//gps cordinates data hay apnay, needed by wifi direct
 
         Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         System.out.println("location: ");
         System.out.println(location);
 
-        DnsSdTxtRecordListener txtListener = new DnsSdTxtRecordListener() {
+        DnsSdTxtRecordListener txtListener = new DnsSdTxtRecordListener() {//
             @Override
             /* Callback includes:
              * fullDomain: full domain name: e.g "printer._ipp._tcp.local."
@@ -125,7 +127,8 @@ public class MainActivity extends AppCompatActivity {
              * device: The device running the advertised service.
              */
 
-            public void onDnsSdTxtRecordAvailable(
+            public void onDnsSdTxtRecordAvailable(//service discovery, this function recieves the hotspot's password and ip
+                                                  //
                     String fullDomain, Map record, WifiP2pDevice device) {
 //                Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
 //                Toast.makeText(MainActivity.this, "DnsSdTxtRecord available -" + record.toString(),
@@ -137,11 +140,12 @@ public class MainActivity extends AppCompatActivity {
 
                 wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
 //remember id
-                int netId = wifiManager.addNetwork(wifiConfig);
+                int netId = wifiManager.addNetwork(wifiConfig);//adds wifi name to client's wifi list
                 wifiManager.disconnect();
                 wifiManager.enableNetwork(netId, true);
                 wifiManager.reconnect();
-                while (formatIP(wifiManager.getConnectionInfo().getIpAddress()).equals("0.0.0.0")){
+                while (formatIP(wifiManager.getConnectionInfo().getIpAddress()).equals("0.0.0.0")){//jb client host say connect hojai tou handle this k ak broadcast reciever daikhay k kia wo wifi connect hogaya hay aur kia wo usi say hogaya hay jis say hum chahtay thay
+                    //gets wifi's pass and ip and connecting with them in here
                 }
                 Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
                         Toast.LENGTH_LONG).show();
@@ -157,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         DnsSdServiceResponseListener servListener = new DnsSdServiceResponseListener() {
-            @Override
+            @Override//gives details of the device that generated the ip and password, this way a client can directly to that hotspot devices(not used rn)
             public void onDnsSdServiceAvailable(String instanceName, String registrationType,
                                                 final WifiP2pDevice resourceType) {
 
@@ -188,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
         manager.setDnsSdResponseListeners(channel, servListener, txtListener);
 
         WifiP2pDnsSdServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+        //checks if wifi p2p is even supported or not on a device
         manager.addServiceRequest(channel,
                 serviceRequest,
                 new WifiP2pManager.ActionListener() {
@@ -221,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {//not used
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 System.out.println(formatIP(wifiManager.getConnectionInfo().getIpAddress()));
@@ -255,9 +260,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
+    WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {//not used rn
         @Override
-        public void onPeersAvailable(final WifiP2pDeviceList peers) {
+        public void onPeersAvailable(final WifiP2pDeviceList peers) {//discovers the devices areounf us, not wifi
             deviceListAdapter.clear();
             System.out.println("peers: ");
             System.out.println(peers.getDeviceList());
@@ -277,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     @Override
-    protected void onResume() {
+    protected void onResume() {//saved states
         super.onResume();
         registerReceiver(receiver, intentFilter);
     }
@@ -338,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        manager.createGroup(channel, new WifiP2pManager.ActionListener() {
+        manager.createGroup(channel, new WifiP2pManager.ActionListener() {//this event's listner is in broadcast reciever
 
             @Override
             public void onSuccess() {

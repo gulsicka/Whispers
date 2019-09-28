@@ -49,10 +49,10 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // Call WifiP2pManager.requestPeers() to get a list of current peers
-            if (mManager != null) {
-                mManager.requestPeers(mChannel, mActivity.peerListListener);
-            }
-
+            //if (mManager != null) { // listview mai devices ane aingi
+               // mManager.requestPeers(mChannel, mActivity.peerListListener);
+            //}
+//wifi group jb bnta hay, tou yea neechay dono invoke hotay hay
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             // Respond to new connection or disconnections
             System.out.println("connection state changed");
@@ -80,6 +80,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 @Override
                 public void onGroupInfoAvailable(WifiP2pGroup wifiP2pGroup) {
                     if (wifiP2pGroup != null) {
+                        //this is hotspot's own ip and password
                         String ssid = wifiP2pGroup.getNetworkName();
                         String password = wifiP2pGroup.getPassphrase();
                         Toast.makeText(context, "group available", Toast.LENGTH_SHORT).show();
@@ -90,6 +91,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                         Map record = new HashMap();
                         record.put("wifi_ssid", ssid);
                         record.put("wifi_password", password);
+                        //puts username and password record in service info
                         WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", record);
                         mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
                             @Override
