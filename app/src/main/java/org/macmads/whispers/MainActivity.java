@@ -147,8 +147,10 @@ public class MainActivity extends AppCompatActivity {
                 while (formatIP(wifiManager.getConnectionInfo().getIpAddress()).equals("0.0.0.0")){//jb client host say connect hojai tou handle this k ak broadcast reciever daikhay k kia wo wifi connect hogaya hay aur kia wo usi say hogaya hay jis say hum chahtay thay
                     //gets wifi's pass and ip and connecting with them in here
                 }
-                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
-                        Toast.LENGTH_LONG).show();
+                //Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
+                  //      Toast.LENGTH_LONG).show();
+                //Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().ipAddress),
+                  //      Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(MainActivity.this,ChatActivity.class);
                 intent.putExtra("server_ip",formatIP(wifiManager.getDhcpInfo().gateway));
                 MainActivity.this.startActivity(intent);

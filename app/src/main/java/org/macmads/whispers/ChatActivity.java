@@ -2,18 +2,34 @@ package org.macmads.whispers;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.View;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import static android.graphics.Bitmap.createScaledBitmap;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -21,23 +37,52 @@ public class ChatActivity extends AppCompatActivity {
     public WebSocketClient client;
     public MessageAdapter messageAdapter;
     public EditText msg_to_send;
+    public Intent intent;
+    public ImageButton sendImage;
+    LinearLayout imageLayout;
+    FrameLayout frameLayout;
+    ImageView imageToSend;
+    public Bitmap bitmap = null;
+    Bitmap previewImageBM = null;
+    int imageHeight, imageWidth;
+    public byte[] byteArray = null;
+    public Uri imageuri;
+    private static final int PICK_IMAGE =1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         msg_to_send = findViewById(R.id.editText);
         msg_to_send.setText("");
-        Intent intent = getIntent();
+        intent = getIntent();
+        imageToSend = (ImageView) findViewById(R.id.imageToBeSent);
+        sendImage = findViewById(R.id.imageBtn);
+
+
 
         messagesView = (ListView) findViewById(R.id.messages_view);
         messageAdapter = new MessageAdapter(this);
         messagesView.setAdapter(messageAdapter);
-        Message message = new Message("message",new MemberData("abdullah","red"),false);
-        messageAdapter.add(message);
-        messageAdapter.notifyDataSetChanged();
+       // Message message = new Message("message",new MemberData("abdullah","red"),false);
+        //messageAdapter.add(message);
+        //messageAdapter.notifyDataSetChanged();
+
+
+        sendImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent gallery = new Intent();
+                gallery.setType("image/*");
+                gallery.setAction(getIntent().ACTION_GET_CONTENT);
+
+                startActivityForResult(Intent.createChooser(gallery, "select picture"), PICK_IMAGE);
+            }
+        });
+
         URI serverUri = null;
         try {
-            serverUri = new URI("ws://"+intent.getStringExtra("server_ip")+":38301");
+            serverUri = new URI("ws://"+ "192.168.10.6"+":38302");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -50,13 +95,15 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onMessage(String message) {
+                System.out.println(message);
                 final String m = message;
                 runOnUiThread(new Runnable() {
 
                     @Override
                     public void run() {//server ka msg yahan recieve hota hay, client doesnt know k yea kahan say aya hay but server does
-                        recieveMessage(m);//addss msg to listview
-                        messagesView.refreshDrawableState();
+
+                            recieveMessage(m);//addss msg to listview
+                            messagesView.refreshDrawableState();
                     }
                 });
 
@@ -80,14 +127,92 @@ public class ChatActivity extends AppCompatActivity {
     }
     public void sendMessage(View view){
 
-        client.send(msg_to_send.getText().toString());
-        messageAdapter.add(new Message(msg_to_send.getText().toString(),new MemberData("abdullah","red"),true));
-        msg_to_send.setText("");
-        messageAdapter.notifyDataSetChanged();
+        String imageString = null;
+        if(byteArray != null) {
+            imageString = Base64.encodeToString(byteArray, Base64.DEFAULT);
+        }
+            client.send(msg_to_send.getText().toString()+"=.="+client.getLocalSocketAddress().toString()+
+                    "=.="+imageString);
+          //
+        //imageLayout.setVisibility(LinearLayout.GONE);
+       // frameLayout.setVisibility(FrameLayout.GONE);
+
+
+            messageAdapter.add(new Message(msg_to_send.getText().toString(), new MemberData("abdullah", "red"), true, bitmap));
+            msg_to_send.setText("");
+            messageAdapter.notifyDataSetChanged();
+
+        previewImageBM = bitmap;
+        bitmap  = null;
+        byteArray = null;
+        imageString = null;
+
 
     }
     public void recieveMessage(String message){
-        messageAdapter.add(new Message(message,new MemberData("abdullah","red"),false));
-        messageAdapter.notifyDataSetChanged();
+
+        String[] parts = message.split("=.=");
+
+        if(!client.getLocalSocketAddress().toString().equals(parts[1])) {
+            //Toast.makeText(ChatActivity.this, parts.length, Toast.LENGTH_SHORT).show();
+
+            byteArray = Base64.decode(parts[2], Base64.DEFAULT);
+            bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+            messageAdapter.add(new Message(parts[0], new MemberData("abdullah", "red"), false, bitmap));
+
+            previewImageBM = bitmap;
+            parts=null;
+            bitmap  = null;
+            byteArray = null;
+
+
+
+            messageAdapter.notifyDataSetChanged();
+        }
+    }
+
+    public void ShowImage(View view)
+    {
+        Toast.makeText(ChatActivity.this, "im image", Toast.LENGTH_SHORT).show();
+        final Dialog nagDialog = new Dialog(ChatActivity.this,android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        nagDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        nagDialog.setCancelable(false);
+        nagDialog.setContentView(R.layout.preview_image);
+        Button btnClose = (Button)nagDialog.findViewById(R.id.btnIvClose);
+        ImageView ivPreview = (ImageView)nagDialog.findViewById(R.id.iv_preview_image);
+        previewImageBM = createScaledBitmap(previewImageBM, 500, 500,true);
+        ivPreview.setImageBitmap(previewImageBM);
+
+        btnClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+
+                nagDialog.dismiss();
+            }
+        });
+        nagDialog.show();
+    }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
+            imageuri = data.getData();
+            try {
+
+                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageuri);
+                imageHeight = bitmap.getHeight();
+                imageWidth = bitmap.getWidth();
+                bitmap = createScaledBitmap(bitmap, 200, 200,true);
+                //imageToSend.setImageBitmap(bitmap);
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                byteArray = stream.toByteArray();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

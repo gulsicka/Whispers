@@ -19,31 +19,45 @@
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:background="#fff"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:weightSum="5">
 
         <EditText
             android:id="@+id/editText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:ems="10"
             android:hint="Write a message"
             android:inputType="text"
             android:paddingHorizontal="10dp"
             android:text="" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="4"
+            android:orientation="vertical">
 
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginHorizontal="10dp"
-            android:background="@drawable/ic_send_black_24dp"
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginHorizontal="10dp"
+                android:background="@drawable/ic_send_black_24dp"
 
-            android:onClick="sendMessage" />
-            android:padding="20dp"
-            android:scaleType="fitCenter"
-            android:onClick="sendMessage"/>
+                android:onClick="sendMessage" />
+                android:padding="20dp"
+                android:scaleType="fitCenter"
+                android:onClick="sendMessage"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/image_attachment"
+                android:id="@+id/imageBtn"
+                />
+
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

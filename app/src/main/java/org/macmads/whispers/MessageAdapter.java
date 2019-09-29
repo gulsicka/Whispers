@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class MessageAdapter extends BaseAdapter {
     public void add(Message message) {
         this.messages.add(message);
         notifyDataSetChanged(); // to render the list we need to notify
+
     }
 
     @Override
@@ -51,23 +53,30 @@ public class MessageAdapter extends BaseAdapter {
         if (message.isBelongsToCurrentUser()) { // this message was sent by us so let's create a basic chat bubble on the right
             convertView = messageInflater.inflate(R.layout.my_message, null);
             holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
+            holder.imageSent = (ImageView) convertView.findViewById(R.id.imageToBeSent);
             convertView.setTag(holder);
             holder.messageBody.setText(message.getText());
+            holder.imageSent.setImageBitmap(message.getBitmap());
         } else { // this message was sent by someone else so let's create an advanced chat bubble on the left
-            convertView = messageInflater.inflate(R.layout.their_message, null);
-            holder.avatar = (View) convertView.findViewById(R.id.avatar);
-            holder.name = (TextView) convertView.findViewById(R.id.name);
-            holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
-            convertView.setTag(holder);
+           // if(!(ip.equals("localhost"))) {
+                convertView = messageInflater.inflate(R.layout.their_message, null);
+                holder.avatar = (View) convertView.findViewById(R.id.avatar);
+                holder.name = (TextView) convertView.findViewById(R.id.name);
+                holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
+                holder.imageSent = (ImageView) convertView.findViewById((R.id.imageToBeRecieved));
+                convertView.setTag(holder);
 
-            holder.name.setText(message.getMemberData().getName());
-            holder.messageBody.setText(message.getText());
-            GradientDrawable drawable = (GradientDrawable) holder.avatar.getBackground();
-            drawable.setColor(Color.parseColor(message.getMemberData().getColor()));
+                holder.name.setText(message.getMemberData().getName());
+                holder.messageBody.setText(message.getText());
+                holder.imageSent.setImageBitmap(message.getBitmap());
+                GradientDrawable drawable = (GradientDrawable) holder.avatar.getBackground();
+                drawable.setColor(Color.parseColor(message.getMemberData().getColor()));
+            //}
         }
 
         return convertView;
     }
+
 
 }
 
@@ -75,4 +84,7 @@ class MessageViewHolder {
     public View avatar;
     public TextView name;
     public TextView messageBody;
+    public ImageView imageSent;
+
+
 }
