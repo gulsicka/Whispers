@@ -50,7 +50,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // Call WifiP2pManager.requestPeers() to get a list of current peers
             //if (mManager != null) { // listview mai devices ane aingi
-               // mManager.requestPeers(mChannel, mActivity.peerListListener);
+            // mManager.requestPeers(mChannel, mActivity.peerListListener);
             //}
 //wifi group jb bnta hay, tou yea neechay dono invoke hotay hay
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
@@ -105,7 +105,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                 Intent i = new Intent();
                                 i.setClassName("org.macmads.whispers", "org.macmads.whispers.ChatActivity");
                                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                i.putExtra("server_ip","localhost");
+                                i.putExtra("server_ip", "localhost");
                                 context.startActivity(i);
                             }
 
@@ -120,6 +120,20 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
 
                 }
             });
+        }
+        if (WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION.equals(action)) {
+            int state = intent.getIntExtra(WifiP2pManager.EXTRA_DISCOVERY_STATE, -1);
+            Toast.makeText(context.getApplicationContext(), "discovery changed", Toast.LENGTH_SHORT).show();
+            if (state == WifiP2pManager.WIFI_P2P_DISCOVERY_STARTED) {
+                Toast.makeText(context.getApplicationContext(), "discovery started", Toast.LENGTH_SHORT).show();
+
+            } else if (state == WifiP2pManager.WIFI_P2P_DISCOVERY_STOPPED) {
+                Toast.makeText(context.getApplicationContext(), "discovery stopped", Toast.LENGTH_SHORT).show();
+                System.out.println("discovery stopped");
+
+            }
+
+
         }
     }
 }
