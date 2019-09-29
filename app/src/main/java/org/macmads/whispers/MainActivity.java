@@ -50,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
     Channel channel;// when wifip2p is initilized it returns a channel
     BroadcastReceiver receiver;// recieves acceptance of permissions granted by system e.g. grant location
     IntentFilter intentFilter;//
+
+    BroadcastReceiver serviceReciever;// recieves acceptance of permissions granted by system e.g. grant location
+    IntentFilter serviceFilter;
+
     final HashMap<String, String> dnsRecords = new HashMap<String, String>();
     public WifiManager wifiManager;
 
@@ -100,11 +104,20 @@ public class MainActivity extends AppCompatActivity {
         channel = manager.initialize(this, getMainLooper(), null);
         receiver = new WiFiDirectBroadcastReceiver(manager, channel, this);
 
+
         intentFilter = new IntentFilter();// tells broadcast reciever to recieve these actions
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
+
+
+        serviceFilter = new IntentFilter();// tells broadcast reciever to recieve these actions
+        serviceFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
+        serviceReciever = new ServiceBroadcastReciever();
+        registerReceiver(serviceReciever,serviceFilter);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -147,8 +160,8 @@ public class MainActivity extends AppCompatActivity {
                 while (formatIP(wifiManager.getConnectionInfo().getIpAddress()).equals("0.0.0.0")){//jb client host say connect hojai tou handle this k ak broadcast reciever daikhay k kia wo wifi connect hogaya hay aur kia wo usi say hogaya hay jis say hum chahtay thay
                     //gets wifi's pass and ip and connecting with them in here
                 }
-                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
-                        Toast.LENGTH_LONG).show();
+//                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
+//                        Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(MainActivity.this,ChatActivity.class);
                 intent.putExtra("server_ip",formatIP(wifiManager.getDhcpInfo().gateway));
                 MainActivity.this.startActivity(intent);
@@ -210,29 +223,29 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
-
-            @Override
-            public void onSuccess() {
-                // Success!
-                System.out.println("service discovery started successfully");
-            }
-
-            @Override
-            public void onFailure(int code) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                System.out.println("service discovery failed");
-
-            }
-        });
+//        manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
+//
+//            @Override
+//            public void onSuccess() {
+//                // Success!
+//                System.out.println("service discovery started successfully");
+//            }
+//
+//            @Override
+//            public void onFailure(int code) {
+//                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
+//                System.out.println("service discovery failed");
+//
+//            }
+//        });
 
         devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {//not used
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 System.out.println(formatIP(wifiManager.getConnectionInfo().getIpAddress()));
 
-                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
-                        Toast.LENGTH_LONG).show();
+//                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
+//                        Toast.LENGTH_LONG).show();
 //                System.out.println(adapterView.getAdapter().getItem(i));
 //
 //                WifiP2pDevice device = (WifiP2pDevice) adapterView.getAdapter().getItem(i);
@@ -285,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {//saved states
         super.onResume();
         registerReceiver(receiver, intentFilter);
+        registerReceiver(serviceReciever,serviceFilter);
     }
 
     /* unregister the broadcast receiver */
@@ -292,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+        unregisterReceiver(serviceReciever);
     }
 
 

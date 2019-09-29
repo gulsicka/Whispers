@@ -24,6 +24,10 @@
             android:name=".WiFiDirectBroadcastReceiver"
             android:enabled="true"
             android:exported="true" />
+        <receiver
+            android:name=".ServiceBroadcastReciever"
+            android:enabled="true"
+            android:exported="true" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
