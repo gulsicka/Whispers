@@ -29,6 +29,7 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -84,7 +85,7 @@ public class ChatActivity extends AppCompatActivity {
 
         URI serverUri = null;
         try {
-            serverUri = new URI("ws://" + "192.168.10.6" + ":38302");
+            serverUri = new URI("ws://"+intent.getStringExtra("server_ip")+":38301");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -134,9 +135,15 @@ public class ChatActivity extends AppCompatActivity {
             imageString = Base64.encodeToString(byteArray, Base64.DEFAULT);
         }
         try {
+            InetSocketAddress address = client.getLocalSocketAddress();
+            if (address != null){
+                client.send(msg_to_send.getText().toString() + "=.=" + address.toString() +
+                        "=.=" + imageString);
+            }
+            else {
+                throw new WebsocketNotConnectedException();
+            }
 
-            client.send(msg_to_send.getText().toString() + "=.=" + client.getLocalSocketAddress().toString() +
-                    "=.=" + imageString);
 
         } catch (WebsocketNotConnectedException exception) {
 

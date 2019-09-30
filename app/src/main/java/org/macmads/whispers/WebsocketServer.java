@@ -43,7 +43,7 @@ public class WebsocketServer extends WebSocketServer {
         // TODO Auto-generated method stub
 
         System.out.println("new connection to " + arg0.getRemoteSocketAddress());
-        this.broadcast("broadcast");
+//        this.broadcast("broadcast");
 //        this.broadcast("broadcast2");
 
     }
