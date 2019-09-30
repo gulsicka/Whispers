@@ -83,48 +83,10 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        URI serverUri = null;
-        try {
-            serverUri = new URI("ws://"+intent.getStringExtra("server_ip")+":38301");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
 
-        client = new WebSocketClient(serverUri) {
-            @Override
-            public void onOpen(ServerHandshake handshakedata) {
-//                this.send("from android");
-            }
-
-            @Override
-            public void onMessage(String message) {
-                System.out.println(message);
-                final String m = message;
-                runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {//server ka msg yahan recieve hota hay, client doesnt know k yea kahan say aya hay but server does
-
-                        recieveMessage(m);//addss msg to listview
-                        messagesView.refreshDrawableState();
-                    }
-                });
-
-
-            }
-
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-//make it go back to main activity
-            }
-
-            @Override
-            public void onError(Exception ex) {
-//make it go back to main activity
-
-            }
-        };
-        client.connect();
+        WebsocketClient.setActivity(this);
+        client = WebsocketClient.getInstance();
+//        client.connect();
 
     }
 
@@ -136,11 +98,10 @@ public class ChatActivity extends AppCompatActivity {
         }
         try {
             InetSocketAddress address = client.getLocalSocketAddress();
-            if (address != null){
+            if (address != null) {
                 client.send(msg_to_send.getText().toString() + "=.=" + address.toString() +
                         "=.=" + imageString);
-            }
-            else {
+            } else {
                 throw new WebsocketNotConnectedException();
             }
 
