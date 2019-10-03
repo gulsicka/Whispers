@@ -106,7 +106,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                 i.setClassName("org.macmads.whispers", "org.macmads.whispers.ChatActivity");
                                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 i.putExtra("server_ip", "localhost");
-                                i.putExtra("nickName","Host" );
+                                i.putExtra("nickName","anonymous user" );
 
                                 context.startActivity(i);
                             }

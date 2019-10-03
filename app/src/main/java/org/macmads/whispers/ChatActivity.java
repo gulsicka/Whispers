@@ -53,7 +53,7 @@ public class ChatActivity extends AppCompatActivity {
     public Uri imageuri;
     private static final int PICK_IMAGE = 1;
 
-    public  MemberData memberData;
+    public MemberData memberData;
     public String nick;
 
     @Override
@@ -89,7 +89,7 @@ public class ChatActivity extends AppCompatActivity {
 
         URI serverUri = null;
         try {
-            serverUri = new URI("ws://"+intent.getStringExtra("server_ip")+":38301");
+            serverUri = new URI("ws://" + intent.getStringExtra("server_ip") + ":38301");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -138,25 +138,25 @@ public class ChatActivity extends AppCompatActivity {
         if (byteArray != null) {
             imageString = Base64.encodeToString(byteArray, Base64.DEFAULT);
         }
-        //try {
+        try {
             InetSocketAddress address = client.getLocalSocketAddress();
-            if (address != null){
+            if (address != null) {
                 client.send(msg_to_send.getText().toString() + "=.=" + address.toString() +
-                        "=.=" + imageString + "=.=" + nick);
-            }
-            else {
+                        "=.=" + imageString + "=.=" + "host");
+            } else {
                 throw new WebsocketNotConnectedException();
             }
 
 
-      /*  } catch (WebsocketNotConnectedException exception) {
+        } catch (WebsocketNotConnectedException exception) {
+            Toast.makeText(getApplicationContext(), "exception", Toast.LENGTH_LONG).show();
 
             ConnectivityManager connectivityManager = (ConnectivityManager) ChatActivity.this.getSystemService(ChatActivity.this.CONNECTIVITY_SERVICE);
             if (connectivityManager != null) {
                 NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
                 if (activeNetworkInfo != null) {
                     //
-                    // boolean isData = activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
+                     boolean isData = activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
                     if (isData) {
                         runOnUiThread(new Runnable() {
                             @Override
@@ -174,7 +174,7 @@ public class ChatActivity extends AppCompatActivity {
             }
 
 
-        }*/
+        }
 
 
         //
@@ -203,7 +203,7 @@ public class ChatActivity extends AppCompatActivity {
 
             byteArray = Base64.decode(parts[2], Base64.DEFAULT);
             bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-            messageAdapter.add(new Message(parts[0], new MemberData(parts[3],"red"), false, bitmap));
+            messageAdapter.add(new Message(parts[0], new MemberData(parts[3], "red"), false, bitmap));
 
             previewImageBM = bitmap;
             parts = null;

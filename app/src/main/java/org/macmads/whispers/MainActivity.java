@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
@@ -52,13 +53,14 @@ public class MainActivity extends AppCompatActivity {
     BroadcastReceiver receiver;// recieves acceptance of permissions granted by system e.g. grant location
     IntentFilter intentFilter;//
 
-    BroadcastReceiver serviceReciever;// recieves acceptance of permissions granted by system e.g. grant location
-    IntentFilter serviceFilter;
 
     final HashMap<String, String> dnsRecords = new HashMap<String, String>();
     public WifiManager wifiManager;
 
-   // List devicesList = new ArrayList<WifiP2pDevice>();
+    BroadcastReceiver wifiConnectionReceiver;
+    IntentFilter wifiConnectionIntentFilter;
+
+    // List devicesList = new ArrayList<WifiP2pDevice>();
     //ArrayAdapter deviceListAdapter;
 
     ListView devicesListView;
@@ -82,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String formatIP(int ip) {//formats hotspots's ip
+    public String formatIP(int ip) {//formats hotspots's ip
         return String.format(
                 "%d.%d.%d.%d",
                 (ip & 0xff),
@@ -91,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 (ip >> 24 & 0xff)
         );
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
         channel = manager.initialize(this, getMainLooper(), null);
         receiver = new WiFiDirectBroadcastReceiver(manager, channel, this);
 
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+
+
 
         intentFilter = new IntentFilter();// tells broadcast reciever to recieve these actions
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -117,10 +123,16 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
 
 
-        serviceFilter = new IntentFilter();// tells broadcast reciever to recieve these actions
-        serviceFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
-        serviceReciever = new ServiceBroadcastReciever();
-        registerReceiver(serviceReciever,serviceFilter);
+        wifiConnectionReceiver = new WifiConnectionBroadcastReciever(this);
+
+        wifiConnectionIntentFilter = new IntentFilter();
+        wifiConnectionIntentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        wifiConnectionIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+
+        registerReceiver(wifiConnectionReceiver,wifiConnectionIntentFilter);
+
+
+
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -146,45 +158,33 @@ public class MainActivity extends AppCompatActivity {
 
             public void onDnsSdTxtRecordAvailable(//service discovery, this function recieves the hotspot's password and ip
                                                   //
-                    String fullDomain, Map record, WifiP2pDevice device) {
+                                                  String fullDomain, Map record, WifiP2pDevice device) {
 //                Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
 //                Toast.makeText(MainActivity.this, "DnsSdTxtRecord available -" + record.toString(),
 //                        Toast.LENGTH_LONG).show();
-                dnsRecords.put(device.deviceAddress, "wifi groups: "+((String) record.get("wifi_ssid")));
+                dnsRecords.put(device.deviceAddress, "wifi groups: " + ((String) record.get("wifi_ssid")));
+
+
+
                 WifiConfiguration wifiConfig = new WifiConfiguration();
                 wifiConfig.SSID = String.format("\"%s\"", record.get("wifi_ssid"));
                 wifiConfig.preSharedKey = String.format("\"%s\"", record.get("wifi_password"));
 
-                wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
 //remember id
 
                 int netId = wifiManager.addNetwork(wifiConfig);//adds wifi name to client's wifi list
 //                wifiManager.disconnect();
                 wifiManager.enableNetwork(netId, true);
 //                wifiManager.reconnect();
-                while (formatIP(wifiManager.getConnectionInfo().getIpAddress()).equals("0.0.0.0")){//jb client host say connect hojai tou handle this k ak broadcast reciever daikhay k kia wo wifi connect hogaya hay aur kia wo usi say hogaya hay jis say hum chahtay thay
-                    //gets wifi's pass and ip and connecting with them in here
-                }
-                //Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
-                  //      Toast.LENGTH_LONG).show();
-                //Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().ipAddress),
-                  //      Toast.LENGTH_LONG).show();
-//                Toast.makeText(MainActivity.this, "server ip -" + formatIP(wifiManager.getDhcpInfo().gateway),
-//                        Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(MainActivity.this,ChatActivity.class);
-                intent.putExtra("server_ip",formatIP(wifiManager.getDhcpInfo().gateway));
-                intent.putExtra("nickName",nickName.getText().toString() );
-                MainActivity.this.startActivity(intent);
 
-
-                System.out.println("dns records recieved");
 
             }
         };
 
 
         DnsSdServiceResponseListener servListener = new DnsSdServiceResponseListener() {
-            @Override//gives details of the device that generated the ip and password, this way a client can directly to that hotspot devices(not used rn)
+            @Override
+//gives details of the device that generated the ip and password, this way a client can directly to that hotspot devices(not used rn)
             public void onDnsSdServiceAvailable(String instanceName, String registrationType,
                                                 final WifiP2pDevice resourceType) {
 
@@ -196,8 +196,6 @@ public class MainActivity extends AppCompatActivity {
                 // wifi devices.
 
 
-
-
                 runOnUiThread(new Runnable() {
 
                     @Override
@@ -206,7 +204,6 @@ public class MainActivity extends AppCompatActivity {
                         //deviceListAdapter.notifyDataSetChanged();
                     }
                 });
-
 
 
             }
@@ -230,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
                         // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
                     }
                 });
-
 
 
         manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
@@ -297,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     //deviceListAdapter.addAll(peers.getDeviceList());
-                   // deviceListAdapter.notifyDataSetChanged();
+                    // deviceListAdapter.notifyDataSetChanged();
                 }
             });
 
@@ -308,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {//saved states
         super.onResume();
         registerReceiver(receiver, intentFilter);
-        registerReceiver(serviceReciever,serviceFilter);
+        registerReceiver(wifiConnectionReceiver,wifiConnectionIntentFilter);
     }
 
     /* unregister the broadcast receiver */
@@ -316,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
-        unregisterReceiver(serviceReciever);
+        unregisterReceiver(wifiConnectionReceiver);
     }
 
 

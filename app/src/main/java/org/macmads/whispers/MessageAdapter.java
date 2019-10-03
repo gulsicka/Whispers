@@ -60,7 +60,7 @@ public class MessageAdapter extends BaseAdapter {
         } else { // this message was sent by someone else so let's create an advanced chat bubble on the left
            // if(!(ip.equals("localhost"))) {
                 convertView = messageInflater.inflate(R.layout.their_message, null);
-                holder.avatar = (View) convertView.findViewById(R.id.avatar);
+//                holder.avatar = (View) convertView.findViewById(R.id.avatar);
                 holder.name = (TextView) convertView.findViewById(R.id.name);
                 holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
                 holder.imageSent = (ImageView) convertView.findViewById((R.id.imageToBeRecieved));
