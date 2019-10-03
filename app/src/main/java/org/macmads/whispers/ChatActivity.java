@@ -94,40 +94,7 @@ public class ChatActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        client = new WebSocketClient(serverUri) {
-            @Override
-            public void onOpen(ServerHandshake handshakedata) {
-//                this.send("from android");
-            }
-
-            @Override
-            public void onMessage(String message) {
-                System.out.println(message);
-                final String m = message;
-                runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {//server ka msg yahan recieve hota hay, client doesnt know k yea kahan say aya hay but server does
-
-                        recieveMessage(m);//addss msg to listview
-                        messagesView.refreshDrawableState();
-                    }
-                });
-
-
-            }
-
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-//make it go back to main activity
-            }
-
-            @Override
-            public void onError(Exception ex) {
-//make it go back to main activity
-
-            }
-        };
+        client = new WebsocketClient(serverUri,getApplicationContext(),this);
         client.connect();
 
     }
@@ -141,8 +108,8 @@ public class ChatActivity extends AppCompatActivity {
         try {
             InetSocketAddress address = client.getLocalSocketAddress();
             if (address != null) {
-                client.send(msg_to_send.getText().toString() + "=.=" + address.toString() +
-                        "=.=" + imageString + "=.=" + "host");
+                client.send(msg_to_send.getText().toString() + "=.=" + address.toString() +  "=.=" + nick
+                        + "=.=" + imageString );
             } else {
                 throw new WebsocketNotConnectedException();
             }
@@ -201,9 +168,9 @@ public class ChatActivity extends AppCompatActivity {
         if (!client.getLocalSocketAddress().toString().equals(parts[1])) {
             //Toast.makeText(ChatActivity.this, parts.length, Toast.LENGTH_SHORT).show();
 
-            byteArray = Base64.decode(parts[2], Base64.DEFAULT);
+            byteArray = Base64.decode(parts[3], Base64.DEFAULT);
             bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-            messageAdapter.add(new Message(parts[0], new MemberData(parts[3], "red"), false, bitmap));
+            messageAdapter.add(new Message(parts[0], new MemberData(parts[2], "red"), false, bitmap));
 
             previewImageBM = bitmap;
             parts = null;

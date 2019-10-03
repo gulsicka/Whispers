@@ -114,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 
 
-
         intentFilter = new IntentFilter();// tells broadcast reciever to recieve these actions
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -129,9 +128,7 @@ public class MainActivity extends AppCompatActivity {
         wifiConnectionIntentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         wifiConnectionIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
 
-        registerReceiver(wifiConnectionReceiver,wifiConnectionIntentFilter);
-
-
+        registerReceiver(wifiConnectionReceiver, wifiConnectionIntentFilter);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
@@ -163,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
 //                Toast.makeText(MainActivity.this, "DnsSdTxtRecord available -" + record.toString(),
 //                        Toast.LENGTH_LONG).show();
                 dnsRecords.put(device.deviceAddress, "wifi groups: " + ((String) record.get("wifi_ssid")));
-
 
 
                 WifiConfiguration wifiConfig = new WifiConfiguration();
@@ -229,21 +225,21 @@ public class MainActivity extends AppCompatActivity {
                 });
 
 
-        manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
-
-            @Override
-            public void onSuccess() {
-                // Success!
-                System.out.println("service discovery started successfully");
-            }
-
-            @Override
-            public void onFailure(int code) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                System.out.println("service discovery failed");
-
-            }
-        });
+//        manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
+//
+//            @Override
+//            public void onSuccess() {
+//                // Success!
+//                System.out.println("service discovery started successfully");
+//            }
+//
+//            @Override
+//            public void onFailure(int code) {
+//                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
+//                System.out.println("service discovery failed");
+//
+//            }
+//        });
 
 /*        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {//not used
             @Override
@@ -304,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {//saved states
         super.onResume();
         registerReceiver(receiver, intentFilter);
-        registerReceiver(wifiConnectionReceiver,wifiConnectionIntentFilter);
+        registerReceiver(wifiConnectionReceiver, wifiConnectionIntentFilter);
     }
 
     /* unregister the broadcast receiver */
@@ -335,50 +331,59 @@ public class MainActivity extends AppCompatActivity {
 //                System.out.println("peers discovery failed");
 //            }
 //        });
-        manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
+        if (!nickName.getText().toString().equals("")) {
 
-            @Override
-            public void onSuccess() {
-                // Success!
-                System.out.println("service discovery started successfully");
-            }
+            manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
 
-            @Override
-            public void onFailure(int code) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                System.out.println("service discovery failed");
+                @Override
+                public void onSuccess() {
+                    // Success!
+                    System.out.println("service discovery started successfully");
+                }
 
-            }
-        });
+                @Override
+                public void onFailure(int code) {
+                    // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
+                    System.out.println("service discovery failed");
+
+                }
+            });
+        } else
+            Toast.makeText(MainActivity.this, "Enter nnick name", Toast.LENGTH_SHORT).show();
     }
 
     public void btnHandler(View view) {
-        manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
+//        if (!nickName.getText().toString().equals("")) {
 
-            }
+            manager.removeGroup(channel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
 
-            @Override
-            public void onFailure(int i) {
+                }
 
-            }
-        });
-        manager.createGroup(channel, new WifiP2pManager.ActionListener() {//this event's listner is in broadcast reciever
+                @Override
+                public void onFailure(int i) {
 
-            @Override
-            public void onSuccess() {
-                // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
+                }
+            });
+            manager.createGroup(channel, new WifiP2pManager.ActionListener() {//this event's listner is in broadcast reciever
+
+                @Override
+                public void onSuccess() {
+                    // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
 //                Toast.makeText(MainActivity.this, "Group Creation Successful.",
 //                        Toast.LENGTH_SHORT).show();
-            }
+                }
 
-            @Override
-            public void onFailure(int reason) {
-                Toast.makeText(MainActivity.this, "Group Creation failed. Retry.",
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(int reason) {
+                    Toast.makeText(MainActivity.this, "Group Creation failed. Retry.",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+//        } else
+//            Toast.makeText(MainActivity.this, "Enter nnick name", Toast.LENGTH_SHORT).show();
+
     }
 
 }

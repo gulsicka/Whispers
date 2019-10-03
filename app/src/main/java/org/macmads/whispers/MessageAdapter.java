@@ -69,8 +69,8 @@ public class MessageAdapter extends BaseAdapter {
                 holder.name.setText(message.getMemberData().getName());
                 holder.messageBody.setText(message.getText());
                 holder.imageSent.setImageBitmap(message.getBitmap());
-                GradientDrawable drawable = (GradientDrawable) holder.avatar.getBackground();
-                drawable.setColor(Color.parseColor(message.getMemberData().getColor()));
+//                GradientDrawable drawable = (GradientDrawable) holder.avatar.getBackground();
+//                drawable.setColor(Color.parseColor(message.getMemberData().getColor()));
             //}
         }
 
@@ -81,7 +81,7 @@ public class MessageAdapter extends BaseAdapter {
 }
 
 class MessageViewHolder {
-    public View avatar;
+//    public View avatar;
     public TextView name;
     public TextView messageBody;
     public ImageView imageSent;
