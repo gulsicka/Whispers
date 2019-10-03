@@ -8,4 +8,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="AppTheme.NoTitle" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowNoTitle">true</item>
+
+    </style>
+
 </resources>

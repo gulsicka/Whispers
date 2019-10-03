@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -57,10 +58,11 @@ public class MainActivity extends AppCompatActivity {
     final HashMap<String, String> dnsRecords = new HashMap<String, String>();
     public WifiManager wifiManager;
 
-    List devicesList = new ArrayList<WifiP2pDevice>();
-    ArrayAdapter deviceListAdapter;
+   // List devicesList = new ArrayList<WifiP2pDevice>();
+    //ArrayAdapter deviceListAdapter;
 
     ListView devicesListView;
+    EditText nickName;
 
 
     //this reacts to the result from request of permission
@@ -95,9 +97,11 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        devicesListView = (ListView) findViewById(R.id.wifiDevicesList);//
-        deviceListAdapter = new ArrayAdapter<String>(this, R.layout.activity_devices_list_item, devicesList);
-        devicesListView.setAdapter(deviceListAdapter);
+        //devicesListView = (ListView) findViewById(R.id.wifiDevicesList);//
+        //deviceListAdapter = new ArrayAdapter<String>(this, R.layout.activity_devices_list_item, devicesList);
+        //devicesListView.setAdapter(deviceListAdapter);
+
+        nickName = findViewById(R.id.editMain);
 
 
         manager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
@@ -153,10 +157,11 @@ public class MainActivity extends AppCompatActivity {
 
                 wifiManager = (WifiManager)getApplicationContext().getSystemService(WIFI_SERVICE);
 //remember id
+
                 int netId = wifiManager.addNetwork(wifiConfig);//adds wifi name to client's wifi list
-                wifiManager.disconnect();
+//                wifiManager.disconnect();
                 wifiManager.enableNetwork(netId, true);
-                wifiManager.reconnect();
+//                wifiManager.reconnect();
                 while (formatIP(wifiManager.getConnectionInfo().getIpAddress()).equals("0.0.0.0")){//jb client host say connect hojai tou handle this k ak broadcast reciever daikhay k kia wo wifi connect hogaya hay aur kia wo usi say hogaya hay jis say hum chahtay thay
                     //gets wifi's pass and ip and connecting with them in here
                 }
@@ -168,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
 //                        Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(MainActivity.this,ChatActivity.class);
                 intent.putExtra("server_ip",formatIP(wifiManager.getDhcpInfo().gateway));
+                intent.putExtra("nickName",nickName.getText().toString() );
                 MainActivity.this.startActivity(intent);
 
 
@@ -196,8 +202,8 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void run() {
-                        deviceListAdapter.add(resourceType);
-                        deviceListAdapter.notifyDataSetChanged();
+                        //deviceListAdapter.add(resourceType);
+                        //deviceListAdapter.notifyDataSetChanged();
                     }
                 });
 
@@ -243,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {//not used
+/*        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {//not used
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 System.out.println(formatIP(wifiManager.getConnectionInfo().getIpAddress()));
@@ -274,13 +280,13 @@ public class MainActivity extends AppCompatActivity {
 //                });
 
             }
-        });
+        });*/
     }
 
     WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {//not used rn
         @Override
         public void onPeersAvailable(final WifiP2pDeviceList peers) {//discovers the devices areounf us, not wifi
-            deviceListAdapter.clear();
+            //deviceListAdapter.clear();
             System.out.println("peers: ");
             System.out.println(peers.getDeviceList());
 //            for (WifiP2pDevice peer:peers.getDeviceList()){
@@ -290,8 +296,8 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    deviceListAdapter.addAll(peers.getDeviceList());
-                    deviceListAdapter.notifyDataSetChanged();
+                    //deviceListAdapter.addAll(peers.getDeviceList());
+                   // deviceListAdapter.notifyDataSetChanged();
                 }
             });
 
@@ -316,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void btnDiscoverPeersOnClick(View view) {
 //        manager.requestDiscoveryState(channel,discoveryStateListener);
-        deviceListAdapter.clear();
+        //deviceListAdapter.clear();
 //        System.out.println("button pressed");
 //        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
 //            @Override

@@ -53,6 +53,9 @@ public class ChatActivity extends AppCompatActivity {
     public Uri imageuri;
     private static final int PICK_IMAGE = 1;
 
+    public  MemberData memberData;
+    public String nick;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,6 +73,7 @@ public class ChatActivity extends AppCompatActivity {
         // Message message = new Message("message",new MemberData("abdullah","red"),false);
         //messageAdapter.add(message);
         //messageAdapter.notifyDataSetChanged();
+        nick = intent.getStringExtra("nickName");
 
 
         sendImage.setOnClickListener(new View.OnClickListener() {
@@ -134,24 +138,25 @@ public class ChatActivity extends AppCompatActivity {
         if (byteArray != null) {
             imageString = Base64.encodeToString(byteArray, Base64.DEFAULT);
         }
-        try {
+        //try {
             InetSocketAddress address = client.getLocalSocketAddress();
             if (address != null){
                 client.send(msg_to_send.getText().toString() + "=.=" + address.toString() +
-                        "=.=" + imageString);
+                        "=.=" + imageString + "=.=" + nick);
             }
             else {
                 throw new WebsocketNotConnectedException();
             }
 
 
-        } catch (WebsocketNotConnectedException exception) {
+      /*  } catch (WebsocketNotConnectedException exception) {
 
             ConnectivityManager connectivityManager = (ConnectivityManager) ChatActivity.this.getSystemService(ChatActivity.this.CONNECTIVITY_SERVICE);
             if (connectivityManager != null) {
                 NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
                 if (activeNetworkInfo != null) {
-                    boolean isData = activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
+                    //
+                    // boolean isData = activeNetworkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
                     if (isData) {
                         runOnUiThread(new Runnable() {
                             @Override
@@ -169,7 +174,7 @@ public class ChatActivity extends AppCompatActivity {
             }
 
 
-        }
+        }*/
 
 
         //
@@ -177,7 +182,7 @@ public class ChatActivity extends AppCompatActivity {
         // frameLayout.setVisibility(FrameLayout.GONE);
 
 
-        messageAdapter.add(new Message(msg_to_send.getText().toString(), new MemberData("abdullah", "red"), true, bitmap));
+        messageAdapter.add(new Message(msg_to_send.getText().toString(), new MemberData(nick, "red"), true, bitmap));
         msg_to_send.setText("");
         messageAdapter.notifyDataSetChanged();
 
@@ -198,7 +203,7 @@ public class ChatActivity extends AppCompatActivity {
 
             byteArray = Base64.decode(parts[2], Base64.DEFAULT);
             bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-            messageAdapter.add(new Message(parts[0], new MemberData("abdullah", "red"), false, bitmap));
+            messageAdapter.add(new Message(parts[0], new MemberData(parts[3],"red"), false, bitmap));
 
             previewImageBM = bitmap;
             parts = null;

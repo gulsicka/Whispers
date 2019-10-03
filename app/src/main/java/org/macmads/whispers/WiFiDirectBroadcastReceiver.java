@@ -7,6 +7,7 @@ import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import org.java_websocket.WebSocket;
@@ -23,8 +24,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
     private MainActivity mActivity;
-
-
+    public  EditText nickName ;
     public WiFiDirectBroadcastReceiver(WifiP2pManager manager, Channel channel,
                                        MainActivity activity) {
         super();
@@ -106,6 +106,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                                 i.setClassName("org.macmads.whispers", "org.macmads.whispers.ChatActivity");
                                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 i.putExtra("server_ip", "localhost");
+                                i.putExtra("nickName","Host" );
+
                                 context.startActivity(i);
                             }
 
