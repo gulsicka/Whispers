@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "285634455573",
+    "firebase_url": "https://whispers-8e018.firebaseio.com",
+    "project_id": "whispers-8e018",
+    "storage_bucket": "whispers-8e018.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:285634455573:android:238745b5a1818fb85e861c",
+        "android_client_info": {
+          "package_name": "org.macmads.whispers"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "285634455573-2vmcnftmis3j71f4bj9fnpjbckb24elb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBF_JY3wcUgEbBw4EJ-EFsBGozJWQCdfl8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "285634455573-2vmcnftmis3j71f4bj9fnpjbckb24elb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
